@@ -4,35 +4,38 @@ defmodule QcloudCosSts do
   """
   @config Application.get_all_env(:qcloud_cos_sts)
 
-  def get_policy() do
-  end
-
   def get_certificate() do
-    secret_id = @config[:secret_id]
-    secret_key = @config[:secret_key]
+    secret_id = @config[:secret_id] || raise "Please config `:secret_id`"
+    secret_key = @config[:secret_key] || raise "Please config `:secret_key`"
     proxy = @config[:proxy] || ""
-    host = @config[:host] || ""
+    host = @config[:host] || "sts.tencentcloudapi.com"
     region = @config[:region] || "ap-beijing"
     duration_seconds = to_string(@config[:duration_seconds] || 1800)
+    bucket = @config[:bucket] || raise "Please config `:bucket`"
+
+    short_bucket_name = bucket |> String.split("-") |> Enum.slice(0..1) |> Enum.join("-")
+    app_id = bucket |> String.split("-") |> List.last()
 
     policy = %{
       "version" => "2.0",
       "statement" => [
         %{
-          "action" => [
-            "name/cos:PutObject",
-            "name/cos:PostObject"
-          ],
+          "action" =>
+            @config[:action] ||
+              [
+                "name/cos:PutObject",
+                "name/cos:PostObject"
+              ],
           "effect" => "allow",
           "principal" => %{"qcs" => ["*"]},
           "resource" => [
             "qcs::cos:" <>
               @config[:region] <>
               ":uid/" <>
-              @config[:app_id] <>
+              app_id <>
               ":prefix//" <>
-              @config[:app_id] <>
-              "/" <> @config[:short_bucket_name] <> "/" <> (@config[:allow_prefix] || "*")
+              app_id <>
+              "/" <> short_bucket_name <> "/" <> (@config[:allow_prefix] || "*")
           ]
         }
       ]
@@ -65,13 +68,18 @@ defmodule QcloudCosSts do
 
   defp parse_response({:ok, %HTTPoison.Response{status_code: status_code} = response})
        when status_code in 200..399 do
-    {:ok,
-     %{
-       body: response.body,
-       headers: response.headers,
-       status_code: response.status_code,
-       request: response.request,
-       request_url: response.request_url
-     }}
+    response.body |> Jason.decode!() |> Map.get("Response") |> parse_body(status_code)
+  end
+
+  defp parse_response(other) do
+    other
+  end
+
+  defp parse_body(%{"Error" => error}, status_code) do
+    {:error, %{errors: error, status_code: status_code}}
+  end
+
+  defp parse_body(body, status_code) do
+    {:ok, %{data: body, status_code: status_code}}
   end
 end
