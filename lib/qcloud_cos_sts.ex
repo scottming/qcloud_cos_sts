@@ -13,7 +13,12 @@ defmodule QcloudCosSts do
     duration_seconds = to_string(@config[:duration_seconds] || 1800)
     bucket = @config[:bucket] || raise "Please config `:bucket`"
 
-    short_bucket_name = bucket |> String.split("-") |> Enum.slice(0..1) |> Enum.join("-")
+    short_bucket_name =
+      bucket
+      |> String.split("-")
+      |> Enum.slice(0..1)
+      |> Enum.join("-")
+
     app_id = bucket |> String.split("-") |> List.last()
 
     policy = %{
@@ -30,7 +35,7 @@ defmodule QcloudCosSts do
           "principal" => %{"qcs" => ["*"]},
           "resource" => [
             "qcs::cos:" <>
-              @config[:region] <>
+              region <>
               ":uid/" <>
               app_id <>
               ":prefix//" <>
