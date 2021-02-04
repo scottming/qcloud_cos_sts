@@ -7,7 +7,7 @@ defmodule QcloudCosSts.MixProject do
     [
       app: :qcloud_cos_sts,
       description: "An Elixir implementation of the Qcloud COS temporary key.",
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
