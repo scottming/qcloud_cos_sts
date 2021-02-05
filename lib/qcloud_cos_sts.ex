@@ -16,7 +16,7 @@ defmodule QcloudCosSts do
     short_bucket_name =
       bucket
       |> String.split("-")
-      |> Enum.slice(0..1)
+      |> Enum.slice(0..-2)
       |> Enum.join("-")
 
     app_id = bucket |> String.split("-") |> List.last()
