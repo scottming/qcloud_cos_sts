@@ -2,16 +2,16 @@ defmodule QcloudCosSts do
   @moduledoc """
   Documentation for `QcloudCosSts`.
   """
-  @config Application.get_all_env(:qcloud_cos_sts)
 
   def get_certificate() do
-    secret_id = @config[:secret_id] || raise "Please config `:secret_id`"
-    secret_key = @config[:secret_key] || raise "Please config `:secret_key`"
-    proxy = @config[:proxy] || ""
-    host = @config[:host] || "sts.tencentcloudapi.com"
-    region = @config[:region] || "ap-beijing"
-    duration_seconds = to_string(@config[:duration_seconds] || 1800)
-    bucket = @config[:bucket] || raise "Please config `:bucket`"
+    config = Application.get_all_env(:qcloud_cos_sts)
+    secret_id = config[:secret_id] || raise "Please config `:secret_id`"
+    secret_key = config[:secret_key] || raise "Please config `:secret_key`"
+    proxy = config[:proxy] || ""
+    host = config[:host] || "sts.tencentcloudapi.com"
+    region = config[:region] || "ap-beijing"
+    duration_seconds = to_string(config[:duration_seconds] || 1800)
+    bucket = config[:bucket] || raise "Please config `:bucket`"
 
     short_bucket_name =
       bucket
@@ -26,7 +26,7 @@ defmodule QcloudCosSts do
       "statement" => [
         %{
           "action" =>
-            @config[:action] ||
+            config[:action] ||
               [
                 "name/cos:PutObject",
                 "name/cos:PostObject"
@@ -40,7 +40,7 @@ defmodule QcloudCosSts do
               app_id <>
               ":prefix//" <>
               app_id <>
-              "/" <> short_bucket_name <> "/" <> (@config[:allow_prefix] || "*")
+              "/" <> short_bucket_name <> "/" <> (config[:allow_prefix] || "*")
           ]
         }
       ]
